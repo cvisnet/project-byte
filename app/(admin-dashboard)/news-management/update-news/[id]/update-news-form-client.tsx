@@ -46,6 +46,9 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const { toast } = useToast();
+  const featuredPreviewUrl = initialData.featuredImage
+    ? `/api/image-proxy?url=${encodeURIComponent(initialData.featuredImage)}`
+    : null;
 
   const handleFileChange = React.useCallback(({ allFiles }: { allFiles: any[] }) => {
     const file = allFiles[0];
@@ -179,28 +182,16 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
             {/* Featured Image */}
             <FieldSet>
               <FieldGroup>
-                {/* Show existing image preview when no new file selected */}
-                {!selectedFile && initialData.featuredImage && (
-                  <div className="mb-4">
-                    <FieldLabel>Current Featured Image</FieldLabel>
-                    <img
-                      src={initialData.featuredImage}
-                      alt="Current featured image"
-                      className="mt-2 w-48 h-48 object-cover rounded border"
-                    />
-                  </div>
-                )}
-
-                {/* Dropzone for new image */}
                 <FieldLabel>
                   {selectedFile
                     ? "New Featured Image"
-                    : "Upload New Featured Image (Optional)"}
+                    : "Upload New Featured Image"}
                 </FieldLabel>
                 <UploaderProvider autoUpload={false} onChange={handleFileChange} uploadFn={noopUploadFn}>
                   <SingleImageDropzone
                     width={200}
                     height={200}
+                    initialImageUrl={featuredPreviewUrl}
                     dropzoneOptions={{
                       maxSize: 1024 * 1024 * 5, // 5 MB
                       accept: { "image/*": [] },
