@@ -18,7 +18,6 @@ import { SingleImageDropzone } from "@/components/upload/single-image";
 import { ImageUploader } from "@/components/upload/multi-image";
 import { UploaderProvider } from "@/components/upload/uploader-provider";
 import { slugify } from "@/lib/slugify";
-import { XIcon } from "lucide-react";
 import * as React from "react";
 import { useToast } from "@/contexts/toast-context";
 
@@ -46,6 +45,13 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const { toast } = useToast();
+  const toProxiedImageUrl = React.useCallback(
+    (url: string) => `/api/image-proxy?url=${encodeURIComponent(url)}`,
+    []
+  );
+  const featuredPreviewUrl = initialData.featuredImage
+    ? toProxiedImageUrl(initialData.featuredImage)
+    : null;
 
   const handleFileChange = React.useCallback(({ allFiles }: { allFiles: any[] }) => {
     const file = allFiles[0];
@@ -62,10 +68,26 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
   // Dummy upload function - we handle uploads manually in handleSubmit
   const noopUploadFn = React.useCallback(async () => ({ url: "" }), []);
 
-  const handleDeleteGalleryImage = React.useCallback((url: string) => {
+  const handleDeleteGalleryImage = React.useCallback(async (url: string) => {
     setExistingGallery((prev) => prev.filter((u) => u !== url));
-    setImagesToDelete((prev) => [...prev, url]);
-  }, []);
+    setImagesToDelete((prev) => (prev.includes(url) ? prev : [...prev, url]));
+
+    try {
+      const deleteRes = await fetch("/api/nextcloud/news/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+
+      if (!deleteRes.ok) {
+        throw new Error("Failed to delete image from Nextcloud");
+      }
+    } catch {
+      setExistingGallery((prev) => (prev.includes(url) ? prev : [...prev, url]));
+      setImagesToDelete((prev) => prev.filter((u) => u !== url));
+      toast.error("Failed to remove gallery image.");
+    }
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -99,22 +121,6 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
 
         const { url } = await uploadRes.json();
         finalImageUrl = url;
-      }
-
-      // Delete marked gallery images from Nextcloud in parallel
-      if (imagesToDelete.length > 0) {
-        const deletePromises = imagesToDelete.map(async (url) => {
-          const deleteRes = await fetch("/api/nextcloud/news/delete", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url }),
-          });
-          // Log but don't fail if deletion fails (image may already be gone)
-          if (!deleteRes.ok) {
-            console.warn(`Failed to delete image from Nextcloud: ${url}`);
-          }
-        });
-        await Promise.all(deletePromises);
       }
 
       // Upload gallery images in parallel
@@ -179,28 +185,16 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
             {/* Featured Image */}
             <FieldSet>
               <FieldGroup>
-                {/* Show existing image preview when no new file selected */}
-                {!selectedFile && initialData.featuredImage && (
-                  <div className="mb-4">
-                    <FieldLabel>Current Featured Image</FieldLabel>
-                    <img
-                      src={initialData.featuredImage}
-                      alt="Current featured image"
-                      className="mt-2 w-48 h-48 object-cover rounded border"
-                    />
-                  </div>
-                )}
-
-                {/* Dropzone for new image */}
                 <FieldLabel>
                   {selectedFile
                     ? "New Featured Image"
-                    : "Upload New Featured Image (Optional)"}
+                    : "Upload New Featured Image"}
                 </FieldLabel>
                 <UploaderProvider autoUpload={false} onChange={handleFileChange} uploadFn={noopUploadFn}>
                   <SingleImageDropzone
                     width={200}
                     height={200}
+                    initialImageUrl={featuredPreviewUrl}
                     dropzoneOptions={{
                       maxSize: 1024 * 1024 * 5, // 5 MB
                       accept: { "image/*": [] },
@@ -250,42 +244,16 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
             <FieldSet>
               <FieldGroup>
                 <FieldLabel>Image Gallery</FieldLabel>
-
-                {/* Existing gallery images with delete buttons */}
-                {existingGallery.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Existing images ({existingGallery.length})
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {existingGallery.map((url, index) => (
-                        <div key={url} className="relative group">
-                          <img
-                            src={url}
-                            alt={`Gallery image ${index + 1}`}
-                            className="w-full aspect-square object-cover rounded border"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteGalleryImage(url)}
-                            className="absolute top-1 right-1 p-1 bg-background/80 hover:bg-destructive hover:text-destructive-foreground rounded-full border shadow-sm transition-colors"
-                          >
-                            <XIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Upload new gallery images */}
                 <p className="text-sm text-muted-foreground mb-2">
-                  Add new images (up to 10)
+                  Add or remove images (up to 10 new uploads)
                 </p>
                 <UploaderProvider autoUpload={false} onChange={handleGalleryChange} uploadFn={noopUploadFn}>
                   <ImageUploader
                     maxFiles={10}
                     maxSize={1024 * 1024 * 5}
+                    existingImages={existingGallery}
+                    onRemoveExistingImage={handleDeleteGalleryImage}
+                    resolveExistingImageSrc={toProxiedImageUrl}
                   />
                 </UploaderProvider>
               </FieldGroup>

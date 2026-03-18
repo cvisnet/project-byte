@@ -111,6 +111,9 @@ export default function UpdateTraineeForm({ initialData }: Props) {
   const [error, setError] = React.useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+  const profilePreviewUrl = initialData.profilePhoto
+    ? `/api/image-proxy?url=${encodeURIComponent(initialData.profilePhoto)}`
+    : null;
 
   const handlePhotoChange = React.useCallback(
     ({ allFiles }: { allFiles: any[] }) => {
@@ -179,18 +182,10 @@ export default function UpdateTraineeForm({ initialData }: Props) {
             <FieldSet>
               <FieldGroup>
                 <FieldLabel>
-                  {!selectedPhoto && initialData.profilePhoto
-                    ? "Current Profile Photo"
+                  {selectedPhoto
+                    ? "New Profile Photo"
                     : "Upload New Profile Photo (Optional)"}
                 </FieldLabel>
-
-                {!selectedPhoto && initialData.profilePhoto && (
-                  <img
-                    src={initialData.profilePhoto}
-                    alt="Current profile photo"
-                    className="w-[200px] h-[200px] object-cover rounded-md"
-                  />
-                )}
 
                 <UploaderProvider
                   autoUpload={false}
@@ -200,6 +195,7 @@ export default function UpdateTraineeForm({ initialData }: Props) {
                   <SingleImageDropzone
                     width={200}
                     height={200}
+                    initialImageUrl={profilePreviewUrl}
                     dropzoneOptions={{
                       maxSize: 1024 * 1024 * 5,
                       accept: { "image/*": [] },

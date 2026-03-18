@@ -53,6 +53,17 @@ export interface SingleImageDropzoneProps
     DropzoneOptions,
     'disabled' | 'onDrop' | 'maxFiles' | 'multiple'
   >;
+
+  /**
+   * Optional existing image URL to show when no new file has been selected.
+   */
+  initialImageUrl?: string | null;
+
+  /**
+   * Controls whether remove icon is shown while displaying only the initial image.
+   * Defaults to false.
+   */
+  showRemoveForInitialImage?: boolean;
 }
 
 /**
@@ -74,9 +85,23 @@ export interface SingleImageDropzoneProps
 const SingleImageDropzone = React.forwardRef<
   HTMLInputElement,
   SingleImageDropzoneProps
->(({ dropzoneOptions, width, height, className, disabled, ...props }, ref) => {
+>(
+  (
+    {
+      dropzoneOptions,
+      width,
+      height,
+      className,
+      disabled,
+      initialImageUrl,
+      showRemoveForInitialImage = false,
+      ...props
+    },
+    ref,
+  ) => {
   const { fileStates, addFiles, removeFile, cancelUpload } = useUploader();
   const [error, setError] = React.useState<string>();
+  const [imageLoadError, setImageLoadError] = React.useState(false);
 
   const fileState = React.useMemo(() => fileStates[0], [fileStates]);
   const maxSize = dropzoneOptions?.maxSize;
@@ -98,7 +123,12 @@ const SingleImageDropzone = React.forwardRef<
     };
   }, [tempUrl]);
 
-  const displayUrl = tempUrl ?? fileState?.url;
+  const displayUrl = tempUrl ?? fileState?.url ?? initialImageUrl;
+  const isUsingInitialImage = !fileState && !!initialImageUrl;
+  const effectiveDisplayUrl = imageLoadError ? null : displayUrl;
+  React.useEffect(() => {
+    setImageLoadError(false);
+  }, [displayUrl]);
   const isDisabled =
     !!disabled ||
     fileState?.status === 'UPLOADING' ||
@@ -151,12 +181,19 @@ const SingleImageDropzone = React.forwardRef<
         DROPZONE_VARIANTS.base,
         isFocused && DROPZONE_VARIANTS.active,
         isDisabled && DROPZONE_VARIANTS.disabled,
-        displayUrl && DROPZONE_VARIANTS.image,
+        effectiveDisplayUrl && DROPZONE_VARIANTS.image,
         isDragReject && DROPZONE_VARIANTS.reject,
         isDragAccept && DROPZONE_VARIANTS.accept,
         className,
       ),
-    [isFocused, isDisabled, displayUrl, isDragAccept, isDragReject, className],
+    [
+      isFocused,
+      isDisabled,
+      effectiveDisplayUrl,
+      isDragAccept,
+      isDragReject,
+      className,
+    ],
   );
 
   // Combined error message from dropzone or file state
@@ -175,11 +212,12 @@ const SingleImageDropzone = React.forwardRef<
       >
         <input ref={ref} {...getInputProps()} {...props} />
 
-        {displayUrl ? (
+        {effectiveDisplayUrl ? (
           <img
             className="h-full w-full rounded-md object-cover"
-            src={displayUrl}
-            alt={fileState?.file.name ?? 'uploaded image'}
+            src={effectiveDisplayUrl}
+            alt={fileState?.file.name ?? 'Current featured image'}
+            onError={() => setImageLoadError(true)}
           />
         ) : (
           // Placeholder content shown when no image is selected
@@ -200,22 +238,25 @@ const SingleImageDropzone = React.forwardRef<
         )}
 
         {/* Upload progress overlay */}
-        {displayUrl && fileState?.status === 'UPLOADING' && (
+        {effectiveDisplayUrl && fileState?.status === 'UPLOADING' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-black/70">
             <ProgressCircle progress={fileState.progress} />
           </div>
         )}
 
         {/* Remove/Cancel button */}
-        {displayUrl &&
+        {effectiveDisplayUrl &&
           !disabled &&
-          fileState &&
-          fileState.status !== 'COMPLETE' && (
+          ((fileState && fileState.status !== 'COMPLETE') ||
+            (isUsingInitialImage && showRemoveForInitialImage)) && (
             <button
               type="button"
               className="group pointer-events-auto absolute right-1 top-1 z-10 transform rounded-full border border-muted-foreground bg-background p-1 shadow-md transition-all hover:scale-110"
               onClick={(e) => {
                 e.stopPropagation(); // Prevent triggering dropzone click
+                if (!fileState) {
+                  return;
+                }
                 if (fileState.status === 'UPLOADING') {
                   cancelUpload(fileState.key);
                 } else {
@@ -224,7 +265,7 @@ const SingleImageDropzone = React.forwardRef<
                 }
               }}
             >
-              {fileState.status === 'UPLOADING' ? (
+              {fileState?.status === 'UPLOADING' ? (
                 <XIcon className="block h-4 w-4 text-muted-foreground" />
               ) : (
                 <Trash2Icon className="block h-4 w-4 text-muted-foreground" />
@@ -242,7 +283,8 @@ const SingleImageDropzone = React.forwardRef<
       )}
     </div>
   );
-});
+},
+);
 SingleImageDropzone.displayName = 'SingleImageDropzone';
 
 export { SingleImageDropzone };

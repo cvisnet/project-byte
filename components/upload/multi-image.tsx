@@ -19,6 +19,21 @@ export interface ImageListProps extends React.HTMLAttributes<HTMLDivElement> {
    * Whether the image deletion controls should be disabled.
    */
   disabled?: boolean;
+
+  /**
+   * Existing remote image URLs to display alongside queued uploads.
+   */
+  existingImages?: string[];
+
+  /**
+   * Optional callback when an existing image is removed.
+   */
+  onRemoveExistingImage?: (url: string) => void | Promise<void>;
+
+  /**
+   * Optional mapper for existing image preview URLs.
+   */
+  resolveExistingImageSrc?: (url: string) => string;
 }
 
 /**
@@ -31,8 +46,21 @@ export interface ImageListProps extends React.HTMLAttributes<HTMLDivElement> {
  * ```
  */
 const ImageList = React.forwardRef<HTMLDivElement, ImageListProps>(
-  ({ className, disabled: initialDisabled, ...props }, ref) => {
+  (
+    {
+      className,
+      disabled: initialDisabled,
+      existingImages = [],
+      onRemoveExistingImage,
+      resolveExistingImageSrc,
+      ...props
+    },
+    ref,
+  ) => {
     const { fileStates, removeFile, cancelUpload } = useUploader();
+    const [removingExisting, setRemovingExisting] = React.useState<string[]>(
+      [],
+    );
 
     // Create temporary URLs for image previews
     const tempUrls = React.useMemo(() => {
@@ -54,7 +82,7 @@ const ImageList = React.forwardRef<HTMLDivElement, ImageListProps>(
       };
     }, [tempUrls]);
 
-    if (!fileStates.length) return null;
+    if (!fileStates.length && !existingImages.length) return null;
 
     return (
       <div
@@ -62,6 +90,49 @@ const ImageList = React.forwardRef<HTMLDivElement, ImageListProps>(
         className={cn('mt-4 grid grid-cols-3 gap-2', className)}
         {...props}
       >
+        {existingImages.map((url, index) => {
+          const isRemoving = removingExisting.includes(url);
+          const displayUrl = resolveExistingImageSrc
+            ? resolveExistingImageSrc(url)
+            : url;
+
+          return (
+            <div
+              key={`existing-${url}-${index}`}
+              className={
+                'relative aspect-square h-full w-full rounded-md border-0 bg-muted p-0 shadow-md'
+              }
+            >
+              <img
+                className="h-full w-full rounded-md object-cover"
+                src={displayUrl}
+                alt={`existing image ${index + 1}`}
+              />
+
+              {!initialDisabled && onRemoveExistingImage && (
+                <button
+                  type="button"
+                  disabled={isRemoving}
+                  className="group pointer-events-auto absolute right-1 top-1 z-10 -translate-y-1/4 translate-x-1/4 transform rounded-full border border-muted-foreground bg-background p-1 shadow-md transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    setRemovingExisting((prev) => [...prev, url]);
+                    try {
+                      await onRemoveExistingImage(url);
+                    } finally {
+                      setRemovingExisting((prev) =>
+                        prev.filter((item) => item !== url),
+                      );
+                    }
+                  }}
+                >
+                  <Trash2Icon className="block h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          );
+        })}
+
         {fileStates.map((fileState) => {
           const displayUrl = tempUrls[fileState.key] ?? fileState.url;
           return (
@@ -218,6 +289,21 @@ export interface ImageUploaderProps
    * Ref for the input element inside the Dropzone.
    */
   inputRef?: React.Ref<HTMLInputElement>;
+
+  /**
+   * Existing remote image URLs to display alongside queued uploads.
+   */
+  existingImages?: string[];
+
+  /**
+   * Optional callback when an existing image is removed.
+   */
+  onRemoveExistingImage?: (url: string) => void | Promise<void>;
+
+  /**
+   * Optional mapper for existing image preview URLs.
+   */
+  resolveExistingImageSrc?: (url: string) => string;
 }
 
 /**
@@ -242,6 +328,9 @@ const ImageUploader = React.forwardRef<HTMLDivElement, ImageUploaderProps>(
       dropzoneClassName,
       imageListClassName,
       inputRef,
+      existingImages,
+      onRemoveExistingImage,
+      resolveExistingImageSrc,
       ...props
     },
     ref,
@@ -258,7 +347,13 @@ const ImageUploader = React.forwardRef<HTMLDivElement, ImageUploaderProps>(
           className={dropzoneClassName}
         />
 
-        <ImageList className={imageListClassName} disabled={disabled} />
+        <ImageList
+          className={imageListClassName}
+          disabled={disabled}
+          existingImages={existingImages}
+          onRemoveExistingImage={onRemoveExistingImage}
+          resolveExistingImageSrc={resolveExistingImageSrc}
+        />
       </div>
     );
   },
