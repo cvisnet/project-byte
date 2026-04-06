@@ -79,10 +79,16 @@ export default function UpdateOrgForm({ initialData }: Props) {
         finalImageUrl = url;
       }
 
+      // Track old profile photo for deletion if replaced
+      const profileToDelete = (selectedPhoto && initialData.profilePhoto && finalImageUrl !== initialData.profilePhoto)
+        ? initialData.profilePhoto
+        : undefined;
+
       await updateOrganization(
         formData,
         initialData.id,
         finalImageUrl || undefined,
+        profileToDelete,
       );
 
       toast.success("Organization updated successfully!");

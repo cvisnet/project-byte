@@ -188,6 +188,7 @@ export async function updateOrganization(
   formData: FormData,
   id: string,
   uploadedImageUrl?: string,
+  profilePhotoToDelete?: string,
 ) {
   try {
     // Validation
@@ -221,6 +222,11 @@ export async function updateOrganization(
       where: { id },
       data: updateData,
     });
+
+    // Best-effort: delete old profile photo from Supabase bucket
+    if (profilePhotoToDelete) {
+      await deleteFromSupabaseBucket([profilePhotoToDelete]);
+    }
 
     // Revalidate cache
     revalidatePath("/organization-management");
