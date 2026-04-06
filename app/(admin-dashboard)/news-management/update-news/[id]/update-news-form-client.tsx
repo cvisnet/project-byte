@@ -62,26 +62,10 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
   // Dummy upload function - we handle uploads manually in handleSubmit
   const noopUploadFn = React.useCallback(async () => ({ url: "" }), []);
 
-  const handleDeleteGalleryImage = React.useCallback(async (url: string) => {
+  const handleDeleteGalleryImage = React.useCallback((url: string) => {
     setExistingGallery((prev) => prev.filter((u) => u !== url));
     setImagesToDelete((prev) => (prev.includes(url) ? prev : [...prev, url]));
-
-    try {
-      const deleteRes = await fetch("/api/supabase/news/delete", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-
-      if (!deleteRes.ok) {
-        throw new Error("Failed to delete image");
-      }
-    } catch {
-      setExistingGallery((prev) => (prev.includes(url) ? prev : [...prev, url]));
-      setImagesToDelete((prev) => prev.filter((u) => u !== url));
-      toast.error("Failed to remove gallery image.");
-    }
-  }, [toast]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -117,6 +101,11 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
         finalImageUrl = url;
       }
 
+      // Track old featured image for deletion if replaced
+      const featuredToDelete = (selectedFile && initialData.featuredImage && finalImageUrl !== initialData.featuredImage)
+        ? initialData.featuredImage
+        : undefined;
+
       // Upload gallery images in parallel
       const galleryUrls: string[] = [];
       if (galleryFiles.length > 0) {
@@ -150,7 +139,8 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
         initialData.id,
         finalImageUrl || undefined,
         galleryUrls.length > 0 ? galleryUrls : undefined,
-        imagesToDelete.length > 0 ? imagesToDelete : undefined
+        imagesToDelete.length > 0 ? imagesToDelete : undefined,
+        featuredToDelete,
       );
 
       toast.success("News updated successfully!");
