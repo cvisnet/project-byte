@@ -40,26 +40,7 @@ export default function CreateOrgForm() {
     setLoading(true);
 
     try {
-      /* Create Nextcloud folder */
-      const folderForm = new FormData();
-      folderForm.append("name", name);
-
-      const folderRes = await fetch("/api/nextcloud/organizations/create-folder", {
-        method: "POST",
-        body: folderForm,
-      });
-
-      if(!folderRes.ok) {
-        const err = await folderRes.json();
-        throw new Error(err.error || "Failed to create folder");
-      }
-
-      const { folder } = await folderRes.json()
-
-      /* Create Organization */
       const orgForm = new FormData(formRef.current);
-      orgForm.append("folder", folder);
-
       await createOrganization(orgForm);
 
       toast.success("Organization created successfully!");

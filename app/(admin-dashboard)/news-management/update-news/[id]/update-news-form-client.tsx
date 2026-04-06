@@ -45,13 +45,7 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const { toast } = useToast();
-  const toProxiedImageUrl = React.useCallback(
-    (url: string) => `/api/image-proxy?url=${encodeURIComponent(url)}`,
-    []
-  );
-  const featuredPreviewUrl = initialData.featuredImage
-    ? toProxiedImageUrl(initialData.featuredImage)
-    : null;
+  const featuredPreviewUrl = initialData.featuredImage || null;
 
   const handleFileChange = React.useCallback(({ allFiles }: { allFiles: any[] }) => {
     const file = allFiles[0];
@@ -73,14 +67,14 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
     setImagesToDelete((prev) => (prev.includes(url) ? prev : [...prev, url]));
 
     try {
-      const deleteRes = await fetch("/api/nextcloud/news/delete", {
+      const deleteRes = await fetch("/api/supabase/news/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
       });
 
       if (!deleteRes.ok) {
-        throw new Error("Failed to delete image from Nextcloud");
+        throw new Error("Failed to delete image");
       }
     } catch {
       setExistingGallery((prev) => (prev.includes(url) ? prev : [...prev, url]));
@@ -109,7 +103,7 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
         uploadFormData.append("slug", slug);
         uploadFormData.append("folder", "featured");
 
-        const uploadRes = await fetch("/api/nextcloud/news/upload", {
+        const uploadRes = await fetch("/api/supabase/news/upload", {
           method: "POST",
           body: uploadFormData,
         });
@@ -132,7 +126,7 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
           uploadFormData.append("slug", slug);
           uploadFormData.append("folder", "gallery");
 
-          const uploadRes = await fetch("/api/nextcloud/news/upload", {
+          const uploadRes = await fetch("/api/supabase/news/upload", {
             method: "POST",
             body: uploadFormData,
           });
@@ -253,7 +247,7 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
                     maxSize={1024 * 1024 * 5}
                     existingImages={existingGallery}
                     onRemoveExistingImage={handleDeleteGalleryImage}
-                    resolveExistingImageSrc={toProxiedImageUrl}
+                    resolveExistingImageSrc={undefined}
                   />
                 </UploaderProvider>
               </FieldGroup>

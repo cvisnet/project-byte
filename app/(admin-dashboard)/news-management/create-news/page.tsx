@@ -28,26 +28,7 @@ export default function CreateNewsForm() {
     setLoading(true);
 
     try {
-      /** 1️⃣ Create Nextcloud folder */
-      const folderForm = new FormData();
-      folderForm.append("title", title);
-
-      const folderRes = await fetch("/api/nextcloud/news/create-folder", {
-        method: "POST",
-        body: folderForm,
-      });
-
-      if (!folderRes.ok) {
-        const err = await folderRes.json();
-        throw new Error(err.error || "Failed to create folder");
-      }
-
-      const { folder } = await folderRes.json();
-
-      /** 2️⃣ Create News Post */
       const newsForm = new FormData(formRef.current);
-      newsForm.append("folder", folder);
-
       await createNews(newsForm);
 
       toast.success("News created successfully!");
