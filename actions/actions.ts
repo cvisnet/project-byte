@@ -150,17 +150,21 @@ export async function updateNews(
       data: updateData,
     });
 
-    // Best-effort: delete images from Supabase bucket
-    const urlsToDelete = [...(imagesToDelete || [])];
-    if (featuredImageToDelete) {
-      urlsToDelete.push(featuredImageToDelete);
-    }
-    await deleteFromSupabaseBucket(urlsToDelete);
-
     // Revalidate cache
     revalidatePath("/news-management");
     revalidatePath(`/news-management/update-news/${id}`);
     revalidatePath("/news");
+
+    // Best-effort: delete images from Supabase bucket (after DB success)
+    try {
+      const urlsToDelete = [...(imagesToDelete || [])];
+      if (featuredImageToDelete) {
+        urlsToDelete.push(featuredImageToDelete);
+      }
+      await deleteFromSupabaseBucket(urlsToDelete);
+    } catch (err) {
+      console.error("Best-effort bucket deletion failed:", err);
+    }
   } catch (error) {
     console.error("Update news error:", error);
     throw new Error(
@@ -223,14 +227,18 @@ export async function updateOrganization(
       data: updateData,
     });
 
-    // Best-effort: delete old profile photo from Supabase bucket
-    if (profilePhotoToDelete) {
-      await deleteFromSupabaseBucket([profilePhotoToDelete]);
-    }
-
     // Revalidate cache
     revalidatePath("/organization-management");
     revalidatePath(`/organization-management/update-organization/${id}`);
+
+    // Best-effort: delete old profile photo from Supabase bucket (after DB success)
+    try {
+      if (profilePhotoToDelete) {
+        await deleteFromSupabaseBucket([profilePhotoToDelete]);
+      }
+    } catch (err) {
+      console.error("Best-effort bucket deletion failed:", err);
+    }
   } catch (error) {
     console.error("Update organization error:", error);
     throw new Error(
@@ -313,14 +321,18 @@ export async function updateTrainee(
       data: updateData,
     });
 
-    // Best-effort: delete old profile photo from Supabase bucket
-    if (profilePhotoToDelete) {
-      await deleteFromSupabaseBucket([profilePhotoToDelete]);
-    }
-
     revalidatePath(
       `/organization-management/trainees/${trainee.organizationId}`,
     );
+
+    // Best-effort: delete old profile photo from Supabase bucket (after DB success)
+    try {
+      if (profilePhotoToDelete) {
+        await deleteFromSupabaseBucket([profilePhotoToDelete]);
+      }
+    } catch (err) {
+      console.error("Best-effort bucket deletion failed:", err);
+    }
   } catch (error) {
     console.error("Update trainee error:", error);
     throw new Error(
