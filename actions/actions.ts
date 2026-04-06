@@ -3,6 +3,32 @@
 import prisma from "@/lib/db";
 import { AdminRole } from "@/lib/generated/prisma/enums";
 import { revalidatePath } from "next/cache";
+import { supabase, BUCKET_NAME } from "@/lib/supabase";
+
+async function deleteFromSupabaseBucket(urls: string[]): Promise<void> {
+  if (urls.length === 0) return;
+
+  const filePaths = urls
+    .map((url) => {
+      try {
+        const parsed = new URL(url);
+        const prefix = `/storage/v1/object/public/${BUCKET_NAME}/`;
+        const pathname = decodeURIComponent(parsed.pathname);
+        if (!pathname.startsWith(prefix)) return null;
+        return pathname.slice(prefix.length);
+      } catch {
+        return null;
+      }
+    })
+    .filter((p): p is string => p !== null);
+
+  if (filePaths.length === 0) return;
+
+  const { error } = await supabase.storage.from(BUCKET_NAME).remove(filePaths);
+  if (error) {
+    console.error("Failed to delete from Supabase bucket:", error.message);
+  }
+}
 
 export async function createUsers(formData: FormData) {
   const email = formData.get("email") as string;
@@ -63,6 +89,7 @@ export async function updateNews(
   uploadedImageUrl?: string,
   galleryUrls?: string[],
   imagesToDelete?: string[],
+  featuredImageToDelete?: string,
 ) {
   try {
     // Validation
@@ -122,6 +149,13 @@ export async function updateNews(
       where: { id },
       data: updateData,
     });
+
+    // Best-effort: delete images from Supabase bucket
+    const urlsToDelete = [...(imagesToDelete || [])];
+    if (featuredImageToDelete) {
+      urlsToDelete.push(featuredImageToDelete);
+    }
+    await deleteFromSupabaseBucket(urlsToDelete);
 
     // Revalidate cache
     revalidatePath("/news-management");
