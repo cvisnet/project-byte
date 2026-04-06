@@ -275,6 +275,7 @@ export async function updateTrainee(
   formData: FormData,
   id: string,
   uploadedImageUrl?: string,
+  profilePhotoToDelete?: string,
 ) {
   try {
     const fullName = formData.get("fullName") as string;
@@ -311,6 +312,11 @@ export async function updateTrainee(
       where: { id },
       data: updateData,
     });
+
+    // Best-effort: delete old profile photo from Supabase bucket
+    if (profilePhotoToDelete) {
+      await deleteFromSupabaseBucket([profilePhotoToDelete]);
+    }
 
     revalidatePath(
       `/organization-management/trainees/${trainee.organizationId}`,

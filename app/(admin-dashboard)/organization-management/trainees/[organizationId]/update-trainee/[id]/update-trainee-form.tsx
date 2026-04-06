@@ -153,7 +153,12 @@ export default function UpdateTraineeForm({ initialData }: Props) {
         finalImageUrl = url;
       }
 
-      await updateTrainee(formData, initialData.id, finalImageUrl || undefined);
+      // Track old profile photo for deletion if replaced
+      const profileToDelete = (selectedPhoto && initialData.profilePhoto && finalImageUrl !== initialData.profilePhoto)
+        ? initialData.profilePhoto
+        : undefined;
+
+      await updateTrainee(formData, initialData.id, finalImageUrl || undefined, profileToDelete);
 
       toast.success("Trainee updated successfully!");
     } catch (err) {
