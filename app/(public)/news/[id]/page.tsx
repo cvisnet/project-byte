@@ -57,7 +57,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
         {post.featuredImage && (
           <div className="relative aspect-video mb-8 rounded-lg overflow-hidden">
             <Image
-              src={`/api/image-proxy?url=${encodeURIComponent(post.featuredImage)}`}
+              src={post.featuredImage}
               alt={post.title}
               fill
               className="object-cover"
@@ -88,7 +88,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
                   className="relative aspect-square rounded-lg overflow-hidden"
                 >
                   <Image
-                    src={`/api/image-proxy?url=${encodeURIComponent(url)}`}
+                    src={url}
                     alt={`Gallery image ${index + 1}`}
                     fill
                     className="object-cover hover:scale-105 transition-transform duration-300"

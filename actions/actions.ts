@@ -3,6 +3,43 @@
 import prisma from "@/lib/db";
 import { AdminRole } from "@/lib/generated/prisma/enums";
 import { revalidatePath } from "next/cache";
+import { supabase, BUCKET_NAME } from "@/lib/supabase";
+
+async function deleteFromSupabaseBucket(urls: string[]): Promise<void> {
+  console.log("[DEBUG deleteFromSupabaseBucket] called with urls:", urls);
+  if (urls.length === 0) {
+    console.log("[DEBUG deleteFromSupabaseBucket] empty urls, returning early");
+    return;
+  }
+
+  const filePaths = urls
+    .map((url) => {
+      try {
+        const parsed = new URL(url);
+        const prefix = `/storage/v1/object/public/${BUCKET_NAME}/`;
+        const pathname = decodeURIComponent(parsed.pathname);
+        console.log("[DEBUG deleteFromSupabaseBucket] pathname:", pathname, "prefix:", prefix, "startsWith:", pathname.startsWith(prefix));
+        if (!pathname.startsWith(prefix)) return null;
+        return pathname.slice(prefix.length);
+      } catch (e) {
+        console.log("[DEBUG deleteFromSupabaseBucket] URL parse error:", e);
+        return null;
+      }
+    })
+    .filter((p): p is string => p !== null);
+
+  console.log("[DEBUG deleteFromSupabaseBucket] filePaths:", filePaths);
+  if (filePaths.length === 0) {
+    console.log("[DEBUG deleteFromSupabaseBucket] no valid paths, returning early");
+    return;
+  }
+
+  const { data, error } = await supabase.storage.from(BUCKET_NAME).remove(filePaths);
+  console.log("[DEBUG deleteFromSupabaseBucket] remove result - data:", JSON.stringify(data), "error:", error);
+  if (error) {
+    console.error("Failed to delete from Supabase bucket:", error.message);
+  }
+}
 
 export async function createUsers(formData: FormData) {
   const email = formData.get("email") as string;
@@ -63,6 +100,7 @@ export async function updateNews(
   uploadedImageUrl?: string,
   galleryUrls?: string[],
   imagesToDelete?: string[],
+  featuredImageToDelete?: string,
 ) {
   try {
     // Validation
@@ -127,6 +165,19 @@ export async function updateNews(
     revalidatePath("/news-management");
     revalidatePath(`/news-management/update-news/${id}`);
     revalidatePath("/news");
+
+    // Best-effort: delete images from Supabase bucket (after DB success)
+    try {
+      console.log("[DEBUG updateNews] imagesToDelete:", imagesToDelete, "featuredImageToDelete:", featuredImageToDelete);
+      const urlsToDelete = [...(imagesToDelete || [])];
+      if (featuredImageToDelete) {
+        urlsToDelete.push(featuredImageToDelete);
+      }
+      console.log("[DEBUG updateNews] urlsToDelete:", urlsToDelete);
+      await deleteFromSupabaseBucket(urlsToDelete);
+    } catch (err) {
+      console.error("Best-effort bucket deletion failed:", err);
+    }
   } catch (error) {
     console.error("Update news error:", error);
     throw new Error(
@@ -154,6 +205,7 @@ export async function updateOrganization(
   formData: FormData,
   id: string,
   uploadedImageUrl?: string,
+  profilePhotoToDelete?: string,
 ) {
   try {
     // Validation
@@ -191,6 +243,15 @@ export async function updateOrganization(
     // Revalidate cache
     revalidatePath("/organization-management");
     revalidatePath(`/organization-management/update-organization/${id}`);
+
+    // Best-effort: delete old profile photo from Supabase bucket (after DB success)
+    try {
+      if (profilePhotoToDelete) {
+        await deleteFromSupabaseBucket([profilePhotoToDelete]);
+      }
+    } catch (err) {
+      console.error("Best-effort bucket deletion failed:", err);
+    }
   } catch (error) {
     console.error("Update organization error:", error);
     throw new Error(
@@ -235,6 +296,7 @@ export async function updateTrainee(
   formData: FormData,
   id: string,
   uploadedImageUrl?: string,
+  profilePhotoToDelete?: string,
 ) {
   try {
     const fullName = formData.get("fullName") as string;
@@ -275,6 +337,15 @@ export async function updateTrainee(
     revalidatePath(
       `/organization-management/trainees/${trainee.organizationId}`,
     );
+
+    // Best-effort: delete old profile photo from Supabase bucket (after DB success)
+    try {
+      if (profilePhotoToDelete) {
+        await deleteFromSupabaseBucket([profilePhotoToDelete]);
+      }
+    } catch (err) {
+      console.error("Best-effort bucket deletion failed:", err);
+    }
   } catch (error) {
     console.error("Update trainee error:", error);
     throw new Error(

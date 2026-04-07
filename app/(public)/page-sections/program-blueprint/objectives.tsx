@@ -1,26 +1,30 @@
 "use client";
 
-import { Blocks, Cpu, GlobeLock, Server } from "lucide-react";
+import { Blocks, Cpu, GlobeLock, Handshake, Lightbulb, Server } from "lucide-react";
 
 const objectives = [
   {
     icon: Cpu,
     context:
-      "Establish an ICT training center to develop technology skills primarily for Out-of-School Youth (OSY). The skills that will be developed will initially cover Linux and network administration, security, and cloud services setup and configuration.",
+      "Empower youth with in-demand technology skills – hands-on training in Linux, networking, server management, AI, and web development.",
   },
   {
     icon: Blocks,
     context:
-      "Build a common service facility that will allow OSY trainees to practice and hone their technology skills and work virtually.",
+      "Bridge the gap between learning and real-world IT work – practical projects that build employable skills.",
   },
   {
-    icon: GlobeLock,
+    icon: Handshake,
     context:
-      "Build an incubation center for ICT skills and competencies tailored for specific needs of private institutions and government organizations.",
+      "Leverage partnerships with government and non-government organizations to deliver cutting-edge technology training and community development initiatives.",
   },
   {
     icon: Server,
-    context: "Build an innovation and R&D development center.",
+    context: "Prepare students for IT careers – gain experience in building applications, managing servers, and deploying modern systems.",
+  },
+  {
+    icon: Lightbulb,
+    context: "Encourage innovation and problem-solving – develop creative solutions through project-based learning.",
   },
 ];
 

@@ -15,8 +15,7 @@ interface LatestNewsClientProps {
 
 export default function LatestNewsClient({ news }: LatestNewsClientProps) {
   const items = news.map((news) => ({
-    image: news.featuredImage ? `/api/image-proxy?url=${encodeURIComponent(news.featuredImage)}`
-  : "/images/placeholder.jpg",
+    image: news.featuredImage || "/images/placeholder.jpg",
     title: news.title,
     description: news.content ?? "",
     link: `/news/${news.id}`,

@@ -28,7 +28,7 @@ function NewsCard({ post }: { post: NewsPost }) {
         <div className="relative aspect-video bg-muted">
           {post.featuredImage ? (
             <Image
-              src={`/api/image-proxy?url=${encodeURIComponent(post.featuredImage)}`}
+              src={post.featuredImage}
               alt={post.title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"

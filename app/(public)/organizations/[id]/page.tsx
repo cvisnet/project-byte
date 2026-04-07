@@ -57,7 +57,7 @@ export default async function OrganizationDetails({ params }: PageProps) {
           {org?.profilePhoto && (
             <div className="relative aspect-video h-40 rounded-lg overflow-hidden">
               <Image
-                src={`/api/image-proxy?url=${encodeURIComponent(org.profilePhoto)}`}
+                src={org.profilePhoto}
                 alt={org.name}
                 fill
                 className="object-cover"

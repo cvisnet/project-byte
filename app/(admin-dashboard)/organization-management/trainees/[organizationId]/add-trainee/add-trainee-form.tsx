@@ -35,26 +35,7 @@ export default function AddTraineeForm({
     setLoading(true);
 
     try {
-      const folderForm = new FormData();
-      folderForm.append("fullName", fullName);
-      folderForm.append("organizationId", organizationId);
-
-      const folderRes = await fetch("/api/nextcloud/trainees/create-folder", {
-        method: "POST",
-        body: folderForm,
-      });
-
-      if (!folderRes.ok) {
-        const err = await folderRes.json();
-        throw new Error(err.error || "Failed to create folder");
-      }
-
-      const { folders } = await folderRes.json();
-      const folder = folders.trainee;
-
       const traineeForm = new FormData(formRef.current);
-      traineeForm.append("folder", folder);
-
       await createTrainee(traineeForm);
 
       toast.success("Trainee added successfully");

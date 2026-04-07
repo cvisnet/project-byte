@@ -49,7 +49,7 @@ export default function TraineeCards({ trainees }: TraineeCardsProps) {
                 <div className="relative aspect-square h-60 shrink-0 overflow-hidden">
                   {trainee.profilePhoto ? (
                     <Image
-                      src={`/api/image-proxy?url=${encodeURIComponent(trainee.profilePhoto)}`}
+                      src={trainee.profilePhoto}
                       alt={trainee.fullName}
                       fill
                       className="z-10 object-cover"
@@ -95,7 +95,7 @@ export default function TraineeCards({ trainees }: TraineeCardsProps) {
                   <div className="relative aspect-square h-60 shrink-0 overflow-hidden">
                     {trainee.profilePhoto ? (
                       <Image
-                        src={`/api/image-proxy?url=${encodeURIComponent(trainee.profilePhoto)}`}
+                        src={trainee.profilePhoto}
                         alt={trainee.fullName}
                         fill
                         className="z-10 object-cover"
