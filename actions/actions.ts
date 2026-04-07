@@ -6,7 +6,11 @@ import { revalidatePath } from "next/cache";
 import { supabase, BUCKET_NAME } from "@/lib/supabase";
 
 async function deleteFromSupabaseBucket(urls: string[]): Promise<void> {
-  if (urls.length === 0) return;
+  console.log("[DEBUG deleteFromSupabaseBucket] called with urls:", urls);
+  if (urls.length === 0) {
+    console.log("[DEBUG deleteFromSupabaseBucket] empty urls, returning early");
+    return;
+  }
 
   const filePaths = urls
     .map((url) => {
@@ -14,17 +18,24 @@ async function deleteFromSupabaseBucket(urls: string[]): Promise<void> {
         const parsed = new URL(url);
         const prefix = `/storage/v1/object/public/${BUCKET_NAME}/`;
         const pathname = decodeURIComponent(parsed.pathname);
+        console.log("[DEBUG deleteFromSupabaseBucket] pathname:", pathname, "prefix:", prefix, "startsWith:", pathname.startsWith(prefix));
         if (!pathname.startsWith(prefix)) return null;
         return pathname.slice(prefix.length);
-      } catch {
+      } catch (e) {
+        console.log("[DEBUG deleteFromSupabaseBucket] URL parse error:", e);
         return null;
       }
     })
     .filter((p): p is string => p !== null);
 
-  if (filePaths.length === 0) return;
+  console.log("[DEBUG deleteFromSupabaseBucket] filePaths:", filePaths);
+  if (filePaths.length === 0) {
+    console.log("[DEBUG deleteFromSupabaseBucket] no valid paths, returning early");
+    return;
+  }
 
-  const { error } = await supabase.storage.from(BUCKET_NAME).remove(filePaths);
+  const { data, error } = await supabase.storage.from(BUCKET_NAME).remove(filePaths);
+  console.log("[DEBUG deleteFromSupabaseBucket] remove result - data:", JSON.stringify(data), "error:", error);
   if (error) {
     console.error("Failed to delete from Supabase bucket:", error.message);
   }
@@ -157,10 +168,12 @@ export async function updateNews(
 
     // Best-effort: delete images from Supabase bucket (after DB success)
     try {
+      console.log("[DEBUG updateNews] imagesToDelete:", imagesToDelete, "featuredImageToDelete:", featuredImageToDelete);
       const urlsToDelete = [...(imagesToDelete || [])];
       if (featuredImageToDelete) {
         urlsToDelete.push(featuredImageToDelete);
       }
+      console.log("[DEBUG updateNews] urlsToDelete:", urlsToDelete);
       await deleteFromSupabaseBucket(urlsToDelete);
     } catch (err) {
       console.error("Best-effort bucket deletion failed:", err);
