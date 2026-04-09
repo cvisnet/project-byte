@@ -28,10 +28,10 @@ export default async function NewsPage() {
   }));
 
   return (
-    <div className="relative mx-auto my-10 flex max-w-300 flex-col items-start justify-center gap-10 pb-12">
-      <div className="mb-8 flex flex-col gap-4 text-center">
+    <div className="relative mx-auto my-10 flex max-w-7xl flex-col items-center justify-center gap-10 px-6 pb-12">
+      <div className="mb-8 flex flex-col items-center gap-4 text-center">
         <h1 className="text-3xl font-bold">News</h1>
-        <p className="px-30">
+        <p className="mx-auto max-w-2xl text-muted-foreground">
           Stay updated with the latest news, announcements, and updates from our
           community. Explore articles, insights, and important events to keep
           yourself informed.

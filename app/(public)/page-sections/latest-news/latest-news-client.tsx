@@ -24,10 +24,10 @@ export default function LatestNewsClient({ news }: LatestNewsClientProps) {
   return (
     <div className="relative mx-auto my-10 flex max-w-[96rem] flex-col items-center justify-center gap-4 px-8 py-20">
       <div className="flex flex-col gap-4 items-center mb-6">
-        <h1 className="text-6xl font-extrabold text-[#154091] text-shadow-lg">
+        <h1 className="text-4xl font-bold text-brand-blue lg:text-5xl">
           Latest <span className="text-[#edd153]">News</span>
         </h1>
-        <p className="text-center max-w-2xl">
+        <p className="text-center max-w-2xl text-muted-foreground">
           Stay updated with the latest announcements, activities, and
           developments from the BYTE community.
         </p>
@@ -37,7 +37,7 @@ export default function LatestNewsClient({ news }: LatestNewsClientProps) {
 
       <a
         href="/news"
-        className="group inline-flex items-center gap-2 rounded-xl border px-6 py-3 font-medium transition-all hover:-translate-y-0.5"
+        className="group inline-flex w-fit items-center gap-2 rounded-xl bg-brand-blue px-6 py-3 font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-brand-blue-light"
       >
         Read More News
         <span className="transition-transform group-hover:translate-x-1">

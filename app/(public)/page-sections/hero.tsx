@@ -1,24 +1,37 @@
 "use client"
 
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { GridBackground } from "../../../components/grid-background";
 
 export default function Hero() {
   return (
-    <>
-      <div className="relative mx-auto my-10 flex max-w-[96rem] flex-row items-center justify-center bg-background gap-10 px-8 py-20 ">
-        <div className="flex-1">
-        <h1 className="text-6xl font-extrabold text-[#154091] text-shadow-lg">Building Youth Through Technology Empowerment <span className="text-[#edd153]">Project</span></h1>
-        <p className="mt-8 mb-4 text-lg text-justify"><strong>is a multi-sectoral technology training program</strong> that empowers youth with in-demand digital skills through hands-on, project-based learning.</p>
-
-        <p className="my-4 text-lg text-justify">In partnership with government and non-government organizations, BYTE offers practical courses in operating systems, Linux, networking, server management, artificial intelligence, and web development.</p>
-
-        <p className="my-4 text-lg text-justify">Designed to bridge the gap between theory and real-world application, the program equips learners with the skills to build applications, manage servers, and deploy modern systems—preparing them for careers in the IT and tech industry.</p>
+    <section className="relative mx-auto flex max-w-7xl flex-col items-center justify-center gap-10 px-6 py-16 lg:flex-row lg:py-24">
+      <div className="flex-1 space-y-6">
+        <h1 className="text-4xl font-bold text-brand-blue lg:text-5xl">
+          Building Youth Through Technology Empowerment{" "}
+          <span className="text-brand-gold">Project</span>
+        </h1>
+        <p className="text-lg leading-relaxed text-muted-foreground">
+          <strong className="text-foreground">A multi-sectoral technology training program</strong>{" "}
+          that empowers youth with in-demand digital skills through hands-on,
+          project-based learning in partnership with government and
+          non-government organizations.
+        </p>
+        <Link
+          href="/#contact"
+          className="group inline-flex w-fit items-center gap-2 rounded-xl bg-brand-blue px-6 py-3 font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-brand-blue-light"
+        >
+          Get Started
+           <span className="transition-transform group-hover:translate-x-1">
+            &rarr;
+          </span>
+        </Link>
       </div>
 
-        <div className="flex-1 rounded-4xl overflow-hidden">
-          <GridBackground />
-        </div>
+      <div className="w-full flex-1 overflow-hidden rounded-3xl">
+        <GridBackground />
       </div>
-    </>
+    </section>
   );
 }
