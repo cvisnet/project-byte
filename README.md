@@ -5,8 +5,8 @@ Project BYTE is a Next.js 16 application with:
 - Public-facing pages for courses, organizations, and news
 - Admin dashboard for managing users, news, organizations, and trainees
 - Magic-link admin authentication with NextAuth
-- PostgreSQL + Prisma for persistent data
-- Nextcloud-backed file upload flows for media assets
+- Supabase Postgres + Prisma (via `@prisma/adapter-pg`) for persistent data
+- Supabase Storage for media uploads
 
 ## Clone From GitHub (Fail-Safe)
 
@@ -30,9 +30,8 @@ cd project-byte
 
 - Node.js 20+
 - npm 10+
-- PostgreSQL (local instance or hosted)
+- A Supabase project (provides Postgres + Storage) — or any hosted/local Postgres if you only need the DB
 - Access to SMTP credentials (for magic-link auth)
-- Access to Nextcloud credentials (for upload APIs)
 
 ## First-Time Setup
 
@@ -42,19 +41,23 @@ cd project-byte
 npm install
 ```
 
-2. Create environment file:
+2. Create your local environment file:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
-If `.env.local.example` is not present, create `.env.local` manually and add:
+Then fill `.env.local` with real values. The keys the app actually reads:
 
 ```dotenv
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB_NAME"
+# Supabase Postgres — use the Session pooler URL (port 5432) from
+# Supabase Dashboard → Project Settings → Database → Connection string.
+# Do NOT use the Transaction pooler (port 6543): @prisma/adapter-pg uses
+# prepared statements, which pgbouncer transaction mode breaks.
+DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
 
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="replace-with-a-long-random-secret"
+NEXTAUTH_SECRET="replace-with-a-long-random-secret"   # generate: openssl rand -base64 32
 
 SMTP_HOST="smtp.example.com"
 SMTP_PORT="587"
@@ -62,11 +65,15 @@ SMTP_USER="smtp-user"
 SMTP_PASS="smtp-password"
 SMTP_FROM="Project BYTE <no-reply@example.com>"
 
-NEXTCLOUD_BASE_API_URL="https://nextcloud.example.com/remote.php/dav/files"
-NEXTCLOUD_EMAIL="nextcloud-account-email@example.com"
-NEXTCLOUD_USERNAME="nextcloud-username"
-NEXTCLOUD_APP_PASSWORD="nextcloud-app-password"
+# Supabase Storage (can be the same project as DATABASE_URL, or a separate project)
+SUPABASE_URL="https://<project-ref>.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="<service-role-jwt>"
+
+# Public site URL for robots.txt / sitemap.xml (optional in dev, required in prod)
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 ```
+
+URL-encode special characters in the DB password (e.g. `@` → `%40`, `#` → `%23`). URL-encoding is not needed if the password is alphanumeric.
 
 3. Sync database schema:
 
@@ -75,7 +82,17 @@ npx prisma generate
 npx prisma db push
 ```
 
-4. Start local development:
+> First run against a fresh Supabase project will create empty tables. Rerun `db push` any time `prisma/schema.prisma` changes.
+
+4. Seed a super admin:
+
+```bash
+# 1. Open prisma/seed.ts and set SUPER_ADMIN_EMAIL to your admin email.
+# 2. Run the seeder (idempotent — safe to re-run):
+npx tsx prisma/seed.ts
+```
+
+5. Start local development:
 
 ```bash
 npm run dev
@@ -110,12 +127,13 @@ npm run lint   # run ESLint
   - Ensure `NEXTAUTH_SECRET` is set.
 
 - Upload endpoints fail:
-  - Re-check `NEXTCLOUD_*` variables.
-  - Confirm Nextcloud app password and base API URL are valid.
+  - Re-check `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+  - Ensure the `byte-images` bucket exists in your Supabase project (Dashboard → Storage → New bucket).
 
 - Database connection errors:
-  - Validate `DATABASE_URL`.
-  - Ensure PostgreSQL is reachable and credentials are correct.
+  - Validate `DATABASE_URL` (pooler host, correct region, URL-encoded password).
+  - If you see `prepared statement "sX" already exists`, your `DATABASE_URL` is pointing at the Transaction pooler (port `6543`). Switch to the Session pooler (port `5432`).
+  - Ensure the Supabase project is not paused (free-tier projects pause after inactivity).
 
 ## Notes
 
