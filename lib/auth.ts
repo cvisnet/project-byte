@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   session: {
-    strategy: "jwt", // REQUIRED for middleware
+    strategy: "jwt", // REQUIRED for proxy
   },
 
   providers: [
