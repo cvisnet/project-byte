@@ -44,7 +44,7 @@ export default async function OrganizationDetails({ params }: PageProps) {
 
   return (
     <>
-      <div className="container mx-auto mb-16 max-w-7xl px-6 py-8">
+      <div className="container mx-auto mb-16 max-w-4xl px-6 py-8 text-justify">
         <Link
           href="/organizations"
           className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
