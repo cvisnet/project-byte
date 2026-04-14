@@ -9,7 +9,7 @@ const PROTECTED_ROUTE_PREFIXES = [
   "/organization-management",
 ];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const isProtectedRoute = PROTECTED_ROUTE_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix),
