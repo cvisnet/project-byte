@@ -3,9 +3,9 @@
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
-  CardAction,
   CardContent,
 } from "@/components/ui/card";
+import Image from "next/image";
 
 const projectItems = [
   {
@@ -37,18 +37,19 @@ export function ProjectCard() {
         return (
           <Card
             key={index}
-            className="relative mx-auto w-full max-w-sm pt-0 rounded-xl overflow-hidden"
+            className="relative mx-auto w-full max-w-sm overflow-hidden rounded-xl pt-0"
           >
-            <div className="absolute inset-0 z-30 aspect-video" />
-            <img
+            <Image
               src={item.image}
-              alt="Project"
-              className="relative z-20 aspect-video w-full object-cover"
+              alt={item.title}
+              width={400}
+              height={225}
+              className="aspect-video w-full object-cover"
+              unoptimized
             />
-            <CardContent className="">
-              <CardAction></CardAction>
-              <h1 className="text-foreground">{item.title}</h1>
-              <div className="flex justify-end mt-4 gap-1">
+            <CardContent>
+              <h3 className="text-foreground">{item.title}</h3>
+              <div className="mt-4 flex flex-wrap justify-end gap-1">
                 {item.tags.map((tag, tagIndex) => {
                   return (
                     <Badge key={tagIndex} variant="outline">
