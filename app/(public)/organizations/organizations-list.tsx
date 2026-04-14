@@ -28,7 +28,7 @@ function OrganizationCard({ org }: { org: Organization }) {
         <div className="relative aspect-video bg-muted">
           {org.profilePhoto ? (
             <Image
-              src={`/api/image-proxy?url=${encodeURIComponent(org.profilePhoto)}`}
+              src={org.profilePhoto}
               alt={org.name}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"

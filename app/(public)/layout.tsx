@@ -1,35 +1,32 @@
 import { ModeToggle } from "@/components/mode-toogle";
 import { Navbar } from "@/components/navbar";
-import { LiquidGlassCard } from "@/components/ui/liquid-glass-card";
+import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       {/* ================ Navbar Section ================ */}
-      <LiquidGlassCard
-        borderRadius="0px"
-        shadowIntensity="none"
-        glowIntensity="none"
-        className="relevant col-span-2 p-6 bg-background/8 sticky top-0 z-50 w-full"
-        draggable={false}
-      >
-        <div className="flex justify-between sticky top-0 z-20">
-          <h1 className="flex items-center text-xl text-[#154091] font-bold">
-            <img
-              src={"/images/byte-logo-raw-nobg.png"}
-              className="h-12 w-12"
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+          <Link href="/" className="flex items-center gap-1 text-xl font-bold text-brand-blue">
+            <Image
+              src="/images/byte-logo-raw-nobg.png"
+              width={48}
+              height={48}
               alt="BYTE Logo"
+              className="h-12 w-12"
             />
             BYTE
-          </h1>
+          </Link>
 
-          <div className="flex gap-4 items-center">
+          <div className="flex items-center gap-4">
             <Navbar />
             <ModeToggle />
           </div>
         </div>
-      </LiquidGlassCard>
+      </header>
       {children}
     </>
   );

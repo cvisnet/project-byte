@@ -34,9 +34,7 @@ export default function UpdateOrgForm({ initialData }: Props) {
   const [error, setError] = React.useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
-  const profilePreviewUrl = initialData.profilePhoto
-    ? `/api/image-proxy?url=${encodeURIComponent(initialData.profilePhoto)}`
-    : null;
+  const profilePreviewUrl = initialData.profilePhoto || null;
 
   const handlePhotoChange = React.useCallback(
     ({ allFiles }: { allFiles: any[] }) => {
@@ -67,7 +65,7 @@ export default function UpdateOrgForm({ initialData }: Props) {
         uploadFormData.append("slug", slug);
         uploadFormData.append("folder", "profile");
 
-        const uploadRes = await fetch("/api/nextcloud/organizations/upload", {
+        const uploadRes = await fetch("/api/supabase/organizations/upload", {
           method: "POST",
           body: uploadFormData,
         });
@@ -81,10 +79,16 @@ export default function UpdateOrgForm({ initialData }: Props) {
         finalImageUrl = url;
       }
 
+      // Track old profile photo for deletion if replaced
+      const profileToDelete = (selectedPhoto && initialData.profilePhoto && finalImageUrl !== initialData.profilePhoto)
+        ? initialData.profilePhoto
+        : undefined;
+
       await updateOrganization(
         formData,
         initialData.id,
         finalImageUrl || undefined,
+        profileToDelete,
       );
 
       toast.success("Organization updated successfully!");

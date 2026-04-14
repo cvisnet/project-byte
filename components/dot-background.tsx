@@ -18,7 +18,7 @@ export function DotBackground() {
       className={cn(
         "fixed inset-0 -z-10 pointer-events-none opacity-5 dark:opacity-5",
         "bg-size-[20px_20px]",
-        "bg-[radial-gradient(#154091_1px,transparent_2px)]",
+        "bg-[radial-gradient(var(--brand-blue)_1px,transparent_2px)]",
         "dark:[background-image:linear-gradient(to_right,#262626_1px,transparent_2px)",
         "bg-white dark:bg-black"
       )}

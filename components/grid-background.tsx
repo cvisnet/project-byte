@@ -12,7 +12,7 @@ type CanvasProps = {
 
 export function GridBackground() {
   return (
-    <div className="relative flex h-120 w-full items-center justify-center bg-background ">
+    <div className="relative flex h-80 w-full items-center justify-center bg-background lg:h-[28rem]">
       <div
         className={cn(
           "absolute inset-0",
@@ -27,7 +27,7 @@ export function GridBackground() {
           <ambientLight />
           <directionalLight position={[10, 10, 10]} intensity={5} />
           <Laptop scale={25} position={[0,-1,0]} />
-          <OrbitControls enableZoom={true} minDistance={5} maxDistance={15} />
+          <OrbitControls enableZoom={false} minDistance={5} maxDistance={15} />
         </Canvas>
     </div>
   );

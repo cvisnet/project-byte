@@ -45,13 +45,7 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const { toast } = useToast();
-  const toProxiedImageUrl = React.useCallback(
-    (url: string) => `/api/image-proxy?url=${encodeURIComponent(url)}`,
-    []
-  );
-  const featuredPreviewUrl = initialData.featuredImage
-    ? toProxiedImageUrl(initialData.featuredImage)
-    : null;
+  const featuredPreviewUrl = initialData.featuredImage || null;
 
   const handleFileChange = React.useCallback(({ allFiles }: { allFiles: any[] }) => {
     const file = allFiles[0];
@@ -68,26 +62,10 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
   // Dummy upload function - we handle uploads manually in handleSubmit
   const noopUploadFn = React.useCallback(async () => ({ url: "" }), []);
 
-  const handleDeleteGalleryImage = React.useCallback(async (url: string) => {
+  const handleDeleteGalleryImage = React.useCallback((url: string) => {
     setExistingGallery((prev) => prev.filter((u) => u !== url));
     setImagesToDelete((prev) => (prev.includes(url) ? prev : [...prev, url]));
-
-    try {
-      const deleteRes = await fetch("/api/nextcloud/news/delete", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-
-      if (!deleteRes.ok) {
-        throw new Error("Failed to delete image from Nextcloud");
-      }
-    } catch {
-      setExistingGallery((prev) => (prev.includes(url) ? prev : [...prev, url]));
-      setImagesToDelete((prev) => prev.filter((u) => u !== url));
-      toast.error("Failed to remove gallery image.");
-    }
-  }, [toast]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -109,7 +87,7 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
         uploadFormData.append("slug", slug);
         uploadFormData.append("folder", "featured");
 
-        const uploadRes = await fetch("/api/nextcloud/news/upload", {
+        const uploadRes = await fetch("/api/supabase/news/upload", {
           method: "POST",
           body: uploadFormData,
         });
@@ -123,6 +101,11 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
         finalImageUrl = url;
       }
 
+      // Track old featured image for deletion if replaced
+      const featuredToDelete = (selectedFile && initialData.featuredImage && finalImageUrl !== initialData.featuredImage)
+        ? initialData.featuredImage
+        : undefined;
+
       // Upload gallery images in parallel
       const galleryUrls: string[] = [];
       if (galleryFiles.length > 0) {
@@ -132,7 +115,7 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
           uploadFormData.append("slug", slug);
           uploadFormData.append("folder", "gallery");
 
-          const uploadRes = await fetch("/api/nextcloud/news/upload", {
+          const uploadRes = await fetch("/api/supabase/news/upload", {
             method: "POST",
             body: uploadFormData,
           });
@@ -156,7 +139,8 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
         initialData.id,
         finalImageUrl || undefined,
         galleryUrls.length > 0 ? galleryUrls : undefined,
-        imagesToDelete.length > 0 ? imagesToDelete : undefined
+        imagesToDelete.length > 0 ? imagesToDelete : undefined,
+        featuredToDelete,
       );
 
       toast.success("News updated successfully!");
@@ -253,7 +237,7 @@ export default function UpdateNewsFormClient({ initialData }: Props) {
                     maxSize={1024 * 1024 * 5}
                     existingImages={existingGallery}
                     onRemoveExistingImage={handleDeleteGalleryImage}
-                    resolveExistingImageSrc={toProxiedImageUrl}
+                    resolveExistingImageSrc={undefined}
                   />
                 </UploaderProvider>
               </FieldGroup>
