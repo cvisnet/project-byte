@@ -1,14 +1,7 @@
 import prisma from "@/lib/db";
 
 import { DataTable } from "./data-table";
-import { columns } from "./columns";
-
-type OrganizationsRow = {
-  acronym: string | null;
-  name: string;
-  location: string;
-  trainingStartedAt: string;
-}
+import { columns, OrganizationsRow } from "./columns";
 
 export default async function Organizations() {
 
