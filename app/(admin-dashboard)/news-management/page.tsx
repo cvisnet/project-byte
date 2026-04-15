@@ -1,26 +1,15 @@
 import prisma from "@/lib/db";
 
 import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { columns, NewsPost } from "./columns";
 
-type PageProps = {
-  params: Promise<{ id: string }>;
-};
-
-type NewsPostRow = {
-  title: string
-  status: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export default async function NewsPost({ params }: PageProps) {
+export default async function NewsManagementPage() {
 
   const news = await prisma.newsPost.findMany({
     orderBy: { createdAt: "desc" },
   })
 
-  const data: NewsPostRow[] = news.map(news => ({
+  const data: NewsPost[] = news.map(news => ({
     id: news.id,
     title: news.title,
     status: news.status,
