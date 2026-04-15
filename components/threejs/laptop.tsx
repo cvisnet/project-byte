@@ -18,6 +18,7 @@ export default function Laptop({
   const { scene } = useGLTF(
     "/glb-files/ubuntu_24.04_laptop.glb",
     true,
+    true,
     (loader) => {
       // Initialize and attach a DRACO decoder (adjust path to your deployment)
       const dracoLoader = new DRACOLoader();
