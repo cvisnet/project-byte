@@ -85,7 +85,7 @@ export const LiquidGlassCard = ({
           height: height || 'auto',
           transition: {
             duration: 0.4,
-            ease: [0.5, 1.5, 0.5, 1],
+            ease: [0.5, 1.5, 0.5, 1] as [number, number, number, number],
           },
         },
         expanded: {
@@ -93,7 +93,7 @@ export const LiquidGlassCard = ({
           height: expandedHeight || 'auto',
           transition: {
             duration: 0.4,
-            ease: [0.5, 1.5, 0.5, 1],
+            ease: [0.5, 1.5, 0.5, 1] as [number, number, number, number],
           },
         },
       }
