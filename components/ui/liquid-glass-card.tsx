@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, Variants } from 'motion/react';
 
 import { ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -67,25 +67,14 @@ export const LiquidGlassCard = ({
       'inset 8px 8px 8px 0 rgba(255, 255, 255, 0.6), inset -8px -8px 8px 0 rgba(255, 255, 255, 0.6)',
   };
 
-  const glowStyles = {
-    none: '0 4px 4px rgba(0, 0, 0, 0.05), 0 0 12px rgba(0, 0, 0, 0.05)',
-    xs: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 16px rgba(255, 255, 255, 0.05)',
-    sm: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 24px rgba(255, 255, 255, 0.1)',
-    md: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 32px rgba(255, 255, 255, 0.15)',
-    lg: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 40px rgba(255, 255, 255, 0.2)',
-    xl: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 48px rgba(255, 255, 255, 0.25)',
-    '2xl':
-      '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 60px rgba(255, 255, 255, 0.3)',
-  };
-
-  const containerVariants = expandable
+  const containerVariants: Variants | undefined = expandable
     ? {
         collapsed: {
           width: width || 'auto',
           height: height || 'auto',
           transition: {
             duration: 0.4,
-            ease: [0.5, 1.5, 0.5, 1],
+            ease: [0.5, 1.5, 0.5, 1] as [number, number, number, number],
           },
         },
         expanded: {
@@ -93,11 +82,11 @@ export const LiquidGlassCard = ({
           height: expandedHeight || 'auto',
           transition: {
             duration: 0.4,
-            ease: [0.5, 1.5, 0.5, 1],
+            ease: [0.5, 1.5, 0.5, 1] as [number, number, number, number],
           },
         },
       }
-    : {};
+    : undefined;
 
   const MotionComponent = draggable || expandable ? motion.div : 'div';
 
