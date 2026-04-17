@@ -3,6 +3,8 @@ import NewsList from "./news-list";
 
 const INITIAL_VISIBLE_COUNT = 15;
 
+export const revalidate = 60;
+
 export default async function NewsPage() {
   const [news, totalCount] = await Promise.all([
     prisma.newsPost.findMany({
