@@ -92,6 +92,8 @@ export async function createNews(
     },
   });
   revalidatePath("/news-management");
+  revalidatePath("/");
+  revalidatePath("/news");
 }
 
 export async function updateNews(
@@ -165,6 +167,7 @@ export async function updateNews(
     revalidatePath("/news-management");
     revalidatePath(`/news-management/update-news/${id}`);
     revalidatePath("/news");
+    revalidatePath("/");
 
     // Best-effort: delete images from Supabase bucket (after DB success)
     try {
