@@ -60,7 +60,7 @@ export default async function OrganizationDetails({ params }: PageProps) {
                 src={org.profilePhoto}
                 alt={org.name}
                 fill
-                className="object-cover"
+                className="object-contain"
                 priority
                 unoptimized
               />
