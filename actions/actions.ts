@@ -202,6 +202,7 @@ export async function createOrganization(
     },
   });
   revalidatePath("/organization-management");
+  revalidatePath("/organizations");
 }
 
 export async function updateOrganization(
@@ -246,6 +247,8 @@ export async function updateOrganization(
     // Revalidate cache
     revalidatePath("/organization-management");
     revalidatePath(`/organization-management/update-organization/${id}`);
+    revalidatePath("/organizations");
+    revalidatePath(`/organizations/${id}`);
 
     // Best-effort: delete old profile photo from Supabase bucket (after DB success)
     try {
@@ -293,6 +296,7 @@ export async function createTrainee(formData: FormData) {
   });
 
   revalidatePath(`/organization-management/trainees/${organizationId}`);
+  revalidatePath(`/organizations/${organizationId}`);
 }
 
 export async function updateTrainee(
@@ -340,6 +344,7 @@ export async function updateTrainee(
     revalidatePath(
       `/organization-management/trainees/${trainee.organizationId}`,
     );
+    revalidatePath(`/organizations/${trainee.organizationId}`);
 
     // Best-effort: delete old profile photo from Supabase bucket (after DB success)
     try {
